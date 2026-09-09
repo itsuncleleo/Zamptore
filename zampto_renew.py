@@ -1462,7 +1462,10 @@ def main():
         print("🌐 检测出口 IP...")
         try:
             sb.open("https://api.ipify.org/?format=json")
-            print(f"✅ 出口 IP: {sb.get_text('body')}")
+            ip = sb.get_text("body").strip()
+            import json
+            ip = json.loads(ip)["ip"]
+            print(f"✅ 出口 IP: {ip.split('.')[0]}.***.***.***")
         except Exception:
             print("⚠️ IP 检测超时，代理可能未生效")
         print("-" * 40)
