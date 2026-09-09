@@ -69,7 +69,8 @@ jobs:
           pip install --cache-dir ~/.cache/pip -i https://pypi.tuna.tsinghua.edu.cn/simple seleniumbase requests[socks] python-xlib
           seleniumbase install chromedriver || true
 
-      - name: 🛡️ 启动代理转发（sing-box 统一支持 vless/vmess/trojan/hysteria2/tuic/anytls/socks/http）
+
+      - name: 🛡️ 启动代理转发
         if: ${{ env.GOST_PROXY != '' }}
         env:
           GOST_PROXY: ${{ secrets.GOST_PROXY }}
@@ -78,23 +79,27 @@ jobs:
           set -e
           PROXY="$GOST_PROXY"
           LOCAL_MIXED="socks5://127.0.0.1:${LOCAL_PROXY_PORT}"
-          echo "🌐 使用 sing-box 统一解析节点链接: $PROXY"
+
           VER=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep '"tag_name"' | head -1 | cut -d'"' -f4)
-          echo "📦 sing-box 版本: $VER"
+
           wget -q "https://github.com/SagerNet/sing-box/releases/download/${VER}/sing-box-${VER#v}-linux-amd64.tar.gz"
           tar -xzf "sing-box-${VER#v}-linux-amd64.tar.gz"
           SBBIN=$(find . -maxdepth 3 -name sing-box -type f | head -1)
           chmod +x "$SBBIN"
-          python3 parse_proxy.py
-          echo "📝 singbox_config.json:"
-          cat singbox_config.json
-          nohup "$SBBIN" run -c singbox_config.json > singbox.log 2>&1 &
+
+          python3 parse_proxy.py >/dev/null 2>&1
+
+          nohup "$SBBIN" run -c singbox_config.json >/dev/null 2>&1 &
+
           sleep 5
-          echo "📝 sing-box 启动日志:"
-          tail -n 60 singbox.log || true
-          echo "✅ sing-box 已启动于 $LOCAL_MIXED"
-          echo "✅ 代理就绪，测试出口 IP..."
-          curl -s --connect-timeout 10 --max-time 15 -x "$LOCAL_MIXED" https://api.ipify.org | sed 's/\([0-9]*\.[0-9]*\.\)[0-9]*\.[0-9]*/\1**.**/g' && echo "" || (echo "⚠️ 代理连通测试失败"; exit 1)
+
+          curl -s --connect-timeout 10 --max-time 15 \
+            -x "$LOCAL_MIXED" \
+            https://api.ipify.org >/dev/null || {
+              echo "Proxy connection test failed"
+              exit 1
+            }
+
 
       - name: 🚀 运行续期脚本
         env:
