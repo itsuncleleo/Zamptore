@@ -110,7 +110,6 @@ def _transport_block(q: dict, host_default: str = "") -> dict | None:
         #    因此剥离 query（如 ?ed=2560），只保留纯路径。
         if path and "?" in path:
             base_path = path.split("?", 1)[0]
-            print(f"ℹ️  ws path 含 query，已剥离为 {base_path}（sing-box 不支持 URL query）")
             path = base_path
         if path:
             t["path"] = path
@@ -362,7 +361,7 @@ def build_config(proxy_url: str) -> dict:
         raise SystemExit(f"❌ 不支持的代理链接: {proxy_url[:30]}...（支持 vmess/vless/trojan/hysteria2/tuic/anytls/socks/http）")
 
     return {
-        "log": {"level": "info", "timestamp": True},
+        "log": {"disabled": True},
         "inbounds": [
             {
                 "type": "mixed",
@@ -386,19 +385,6 @@ def main():
     cfg = build_config(url)
     with open("singbox_config.json", "w") as f:
         json.dump(cfg, f, indent=2)
-    # 脱敏打印
-    safe = json.loads(json.dumps(cfg))
-    ob = safe["outbounds"][0]
-    for k in ("uuid", "password", "auth"):
-        if k in ob:
-            ob[k] = "***"
-    if "username" in ob:
-        ob["username"] = "***"
-        ob["password"] = "***"
-    tls = ob.get("tls")
-    if tls:
-        tls.pop("reality", None)
-    print(json.dumps(safe, indent=2))
 
 
 if __name__ == "__main__":
