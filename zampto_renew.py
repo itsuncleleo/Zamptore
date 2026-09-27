@@ -1295,11 +1295,11 @@ def renew_server(sb, server: dict) -> bool:
         final_status = "success"
 
     if final_status == "success":
-        send_tg(f"🖥 {name}\n✅ 续期完成\n⏱️ 剩余: {new_time or '未知'}\n时间: {now_str()}")
+        send_tg(f"🚀 <b>【Zampto 续期】</b>\n🖥 服务器: {name}\n✅ 状态: 续期完成\n⏱️ 剩余: {new_time or '未知'}\n时间: {now_str()}")
     elif final_status == "cooldown":
-        send_tg(f"🖥 {name}\nℹ️ 冷却中，无需续期\n⏱️ 剩余: {new_time or '未知'}\n时间: {now_str()}")
+        send_tg(f"🚀 <b>【Zampto 续期】</b>\n🖥 服务器: {name}\nℹ️ 状态: 冷却中，无需续期\n⏱️ 剩余: {new_time or '未知'}\n时间: {now_str()}")
     else:
-        send_tg(f"🖥 {name}\n⚠️ 未检测到明确续期结果，请查看截图\n⏱️ 剩余: {new_time or '未知'}\n时间: {now_str()}")
+        send_tg(f"🚀 <b>【Zampto 续期】</b>\n🖥 服务器: {name}\n⚠️ 状态: 结果未知（请看截图）\n⏱️ 剩余: {new_time or '未知'}\n时间: {now_str()}")
     return True
 
 
