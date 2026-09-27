@@ -66,7 +66,7 @@ jobs:
 
       - name: 🐍 安装 Python 依赖
         run: |
-          pip install --cache-dir ~/.cache/pip -i https://pypi.tuna.tsinghua.edu.cn/simple seleniumbase requests[socks] python-xlib
+          pip install --cache-dir ~/.cache/pip seleniumbase requests[socks] python-xlib
           seleniumbase install chromedriver || true
 
 
@@ -87,16 +87,20 @@ jobs:
           SBBIN=$(find . -maxdepth 3 -name sing-box -type f | head -1)
           chmod +x "$SBBIN"
 
-          python3 parse_proxy.py >/dev/null 2>&1
+          echo "=== 解析节点 ==="
+          python3 parse_proxy.py
 
-          nohup "$SBBIN" run -c singbox_config.json >/dev/null 2>&1 &
+          echo "=== 启动 sing-box ==="
+          nohup "$SBBIN" run -c singbox_config.json > singbox.log 2>&1 &
 
           sleep 5
+          cat singbox.log
 
-          curl -s --connect-timeout 10 --max-time 15 \
+          echo "=== 测试代理 ==="
+          curl -v -s --connect-timeout 10 --max-time 15 \
             -x "$LOCAL_MIXED" \
-            https://api.ipify.org >/dev/null || {
-              echo "Proxy connection test failed"
+            https://api.ipify.org || {
+              echo "❌ 代理连接测试失败！"
               exit 1
             }
 
