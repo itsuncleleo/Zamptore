@@ -1244,11 +1244,11 @@ def renew_server(sb, server: dict) -> bool:
     # ④ 等待弹出续期结果（弹框内若出现 Turnstile / Loading security verification，
     #    做一次轻量点击处理等 token；不做复杂重试/重触发）。
     #    直到弹框内出现"续期完成/成功"或"冷却中"文案为止；最多等 180s。
-    print(f"⏳ 等待续期结果弹框（最多 180s，弹框 Turnstile 轻量处理）... [{now_str()}]")
+    print(f"⏳ 等待续期结果弹框（最多 60s，超时直接强制刷新验尸）... [{now_str()}]")
     start = time.time()
     final_status = "unknown"
     ts_handled = False
-    while time.time() - start < 180:
+    while time.time() - start < 60:
         # 弹框 Turnstile 只轻量处理一次（点击 + 等 token）
         if not ts_handled and _modal_has_turnstile(sb):
             _handle_modal_turnstile(sb)
@@ -1268,7 +1268,7 @@ def renew_server(sb, server: dict) -> bool:
         time.sleep(1)
 
     if final_status == "unknown":
-        print("⚠️ 180s 内未检测到明确结果弹框，按未知处理，仍会读取剩余时长")
+        print("⚠️ 60s 前端假死超时，直接强行刷新页面校验真实时间...")
     time.sleep(1)
     take_screenshot(sb, f"{prefix}_modal_result.png")
 
@@ -1288,6 +1288,11 @@ def renew_server(sb, server: dict) -> bool:
     new_time = get_time_left(sb)
     print(f"⏱️  续期后剩余时间: {new_time or '未读取到'}")
     take_screenshot(sb, f"{prefix}_final.png")
+
+    # 通过对比时间是否变化，确认为成功
+    if final_status == "unknown" and time_left and new_time and time_left != new_time:
+        print("🎉 校验通过！页面真实剩余时间已发生改变，续期生效。")
+        final_status = "success"
 
     if final_status == "success":
         send_tg(f"🖥 {name}\n✅ 续期完成\n⏱️ 剩余: {new_time or '未知'}\n时间: {now_str()}")
