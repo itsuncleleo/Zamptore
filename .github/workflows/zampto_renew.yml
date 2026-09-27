@@ -1,10 +1,10 @@
 name: Zampto-Renew
 
 on:
-  # 
+  schedule:
+    - cron: '35 22 * * *'
   repository_dispatch:
     types: [cloudflare_cron_trigger]
-  # 
   workflow_dispatch:
 
 jobs:
